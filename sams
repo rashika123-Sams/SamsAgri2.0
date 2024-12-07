@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMS - Soil and Air Monitoring System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4ed;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            text-align: center;
+            margin: 50px auto;
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #27ae60;
+        }
+        .data {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #333;
+        }
+        .chart {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SAMS Dashboard</h1>
+        <div class="data">Temperature: <span id="temperature">Loading...</span> °C</div>
+        <div class="data">Soil Moisture: <span id="soil-moisture">Loading...</span></div>
+        <div class="data">Air Quality: <span id="air-quality">Loading...</span></div>
+
+        <div class="chart">
+            <canvas id="dataChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Simulated data fetching function
+        async function fetchData() {
+            // Replace this with actual data fetching logic from your backend or Arduino
+            return {
+                temperature: (Math.random() * 10 + 20).toFixed(2),
+                soilMoisture: Math.floor(Math.random() * 100),
+                airQuality: Math.floor(Math.random() * 500)
+            };
+        }
+
+        // Update the data on the page
+        async function updateData() {
+            const data = await fetchData();
+            document.getElementById('temperature').textContent = data.temperature;
+            document.getElementById('soil-moisture').textContent = data.soilMoisture;
+            document.getElementById('air-quality').textContent = data.airQuality;
+            updateChart(data);
+        }
+
+        // Initialize the chart
+        const ctx = document.getElementById('dataChart').getContext('2d');
+        const dataChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Temperature (°C)',
+                        data: [],
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    },
+                    {
+                        label: 'Soil Moisture (%)',
+                        data: [],
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    },
+                    {
+                        label: 'Air Quality (PPM)',
+                        data: [],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (s)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Values'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Update the chart with new data
+        function updateChart(data) {
+            const currentTime = new Date().toLocaleTimeString();
+
+            // Add data to each dataset
+            dataChart.data.labels.push(currentTime);
+            dataChart.data.datasets[0].data.push(data.temperature);
+            dataChart.data.datasets[1].data.push(data.soilMoisture);
+            dataChart.data.datasets[2].data.push(data.airQuality);
+
+            // Limit data points to the last 10 entries
+            if (dataChart.data.labels.length > 10) {
+                dataChart.data.labels.shift();
+                dataChart.data.datasets.forEach(dataset => dataset.data.shift());
+            }
+
+            dataChart.update();
+        }
+
+        // Refresh data every 2 seconds
+        setInterval(updateData, 2000);
+    </script>
+</body>
+</html>
